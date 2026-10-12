@@ -1,33 +1,38 @@
-import platform
 import psutil
+import time
 
+def get_top_cpu_processes(limit=5):
+    # Initialize CPU measurement counters
+    for proc in psutil.process_iter(['pid', 'name']):
+        try:
+            proc.cpu_percent()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
 
+    # Give a short interval (e.g., 1 second) to calculate realistic CPU percentage
+    time.sleep(1)
 
-#1.cpu monitoring
-print(psutil.cpu_percent(interval=1))
-#2.Ram monitoring
-ram = psutil.virtual_memory()
-total_ram = ram.total / (1024 ** 3)  # Convert bytes to GB
-used_ram = ram.used / (1024 ** 3)    # Convert bytes to GB
+    processes = []
+    
+    # Iterate through all running system processes
+    for proc in psutil.process_iter(['pid', 'name', 'username', 'cpu_percent', 'memory_percent']):
+        try:
+            info = proc.info
+            # Calculate memory in MB (using Resident Set Size)
+            info['memory_mb'] = proc.memory_info().rss / (1024 * 1024)
+            processes.append(info)
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            # Ignore processes that finished or require elevated admin privileges
+            pass
 
-print(f"Total RAM: {total_ram:.2f} GB")
-print(f"Used RAM: {used_ram:.2f} GB")
+    # Sort processes by CPU usage descending
+    top_cpu = sorted(processes, key=lambda p: p['cpu_percent'], reverse=True)[:limit]
 
-#3.disk monitoring
-disk = psutil.disk_usage('/')
-total_disk = disk.total / (1024 ** 3)  # Convert bytes to GB
-used_disk = disk.used / (1024 ** 3)    # Convert bytes to GB
+    print(f"\n--- TOP {limit} CPU CONSUMING PROCESSES ---")
+    print(f"{'PID':<10} {'NAME':<25} {'CPU (%)':<10} {'RAM (MB)':<10}")
+    print("-" * 60)
+    for p in top_cpu:
+        print(f"{p['pid']:<10} {p['name'][:24]:<25} {p['cpu_percent']:<10.1f} {p['memory_mb']:<10.1f}")
 
-print(f"Total Disk: {total_disk:.2f} GB")
-print(f"Used Disk: {used_disk:.2f} GB")
-
-# print(f"System: {platform.system()}")
-# print(f"Node: {platform.node()}")
-# print(f"Release: {platform.release()}")
-# print(f"Version: {platform.version()}")
-# print(f"Machine: {platform.machine()}")
-# print(f"Processor: {platform.processor()}")
-# print(f"Architecture: {platform.architecture()}")
-# print(f"Python Version: {platform.python_version()}")
-
-
+if __name__ == "__main__":
+    get_top_cpu_processes(limit=5)

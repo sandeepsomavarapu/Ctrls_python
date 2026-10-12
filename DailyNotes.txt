@@ -1,0 +1,120 @@
+https://docs.python.org/3/tutorial/index.html
+
+
+Python:3.15
+		python.org
+guido van rossum	
+
+1)easy to learn  keywords 35
+2)dynamic typed		  int age=23
+3)Interpreted						PVM					age=23
+4)platform independent
+5)portable 					salary=23.45      linux 23.46
+6)free source  and open source    python ,jython,cpython,rubypython
+7)rich  library  (pandas,numpy,matplotlib,seabron,keras,sickitlearn)  pip install pandas
+	Welcome.java
+class Welcome{
+public static void main(String args[])
+{
+System.out.println("welcome to java");
+}
+}		
+	Identifiers:
+	========
+			any name python is identifier 
+						class name,method name,variablename ,.,.....
+				a-z	
+				A-Z
+				0-9
+				_
+	datatypes:
+					int,float,str,bool,complex,any,range-->fundamental dt
+					list,set,tuple,dict,frozenset--->Advanced DT
+			PEP		
+					 snake_case-->functions,variables
+					 PascalCase-->SoftwareEmployee
+					 False,None,True
+	
+	'False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 
+	'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 
+	'lambda', 'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield'
+	
+		imuttable--->all the fundamental DT 
+		
+	Advanced DT:		-->group of values
+	=========== l,s,t,d,fs
+	
+	List:
+	=====
+			1)duplicates are  allowed 
+			2)insertion  order is preserved 
+			3)[] square braces
+			4)haterogenous object s allowed
+			5)muttable
+			
+		Tuple
+	===== it is imuttable version of list
+			1)duplicates are  allowed 
+			2)insertion  order is preserved 
+			3)()
+			4)haterogenous object s allowed
+			5)muttable		
+		Set:
+	=====
+			1)duplicates are  not allowed 
+			2)insertion  order is not preserved 
+			3){} 
+			4)haterogenous object s allowed
+			5)muttable
+	Tuple:
+	------
+	1)duplicates are  not allowed 
+			2)insertion  order is not preserved 
+			3){} 
+			4)haterogenous object s allowed
+			5)muttable
+	FrozenSet:
+			1)duplicates are  not allowed 
+			2)insertion  order is not preserved 
+			3)frozenset()
+			4)haterogenous object s allowed
+			5)imuttable
+dict:
+==== key,value--->Item
+			1)duplicates keys are not allowed
+			2)values can be duplicate
+			3){} 
+			4)haterogenous object s allowed
+			5)muttable			
+Execution Flow :
+===============
+			py
+		notepad
+
+File IO
+--------
+CSV
+
+Exception handling:
+----------------------
+
+
+Logging 
+
+	
+	
+	
+	
+	
+
+
+
+
+
+
+
+
+	
+		
+		
+		

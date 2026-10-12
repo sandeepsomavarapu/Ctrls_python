@@ -1,38 +1,22 @@
-import psutil
-import time
+import logging 
 
-def get_top_cpu_processes(limit=5):
-    # Initialize CPU measurement counters
-    for proc in psutil.process_iter(['pid', 'name']):
-        try:
-            proc.cpu_percent()
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            pass
-
-    # Give a short interval (e.g., 1 second) to calculate realistic CPU percentage
-    time.sleep(1)
-
-    processes = []
-    
-    # Iterate through all running system processes
-    for proc in psutil.process_iter(['pid', 'name', 'username', 'cpu_percent', 'memory_percent']):
-        try:
-            info = proc.info
-            # Calculate memory in MB (using Resident Set Size)
-            info['memory_mb'] = proc.memory_info().rss / (1024 * 1024)
-            processes.append(info)
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            # Ignore processes that finished or require elevated admin privileges
-            pass
-
-    # Sort processes by CPU usage descending
-    top_cpu = sorted(processes, key=lambda p: p['cpu_percent'], reverse=True)[:limit]
-
-    print(f"\n--- TOP {limit} CPU CONSUMING PROCESSES ---")
-    print(f"{'PID':<10} {'NAME':<25} {'CPU (%)':<10} {'RAM (MB)':<10}")
-    print("-" * 60)
-    for p in top_cpu:
-        print(f"{p['pid']:<10} {p['name'][:24]:<25} {p['cpu_percent']:<10.1f} {p['memory_mb']:<10.1f}")
-
-if __name__ == "__main__":
-    get_top_cpu_processes(limit=5)
+logging.basicConfig(
+    filename="app_logs.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+                    )
+def safe_file_cleanup(file_path):
+    try:
+        logging.info(f"Intiating reading the file{file_path}")
+        with open(file_path,'r') as file:
+            data=file.read()
+            print("file processed sucessfully")
+    except FileNotFoundError as fe :
+        logging.error(f"Target file is missing {file_path}")    
+        print("target file is not found ")
+    except PermissionError as pe:
+        logging.critical(f"Access denied for the file{file}")  
+        print("Insufficient Previliage")  
+    finally:
+        logging.info("file cleanup is completed")    
+safe_file_cleanup("dummy.json")        

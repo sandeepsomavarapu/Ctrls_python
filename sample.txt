@@ -1,22 +1,231 @@
-import logging 
+import psutil
+import csv
+import logging
+import time
+import smtplib
+
+from datetime import datetime
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+# ==================================================
+# CONFIGURATION
+# ==================================================
+
+CSV_REPORT_FILE = "server_health_metrics.csv"
+
+CPU_THRESHOLD = 80.0
+RAM_THRESHOLD = 80.0
+DISK_THRESHOLD = 45.0
+
+# Gmail Configuration
+SENDER_EMAIL = "your mail id"
+APP_PASSWORD = "your app password"
+RECIPIENT_EMAIL = "receiver mail id"
+
+# ==================================================
+# LOGGING SETUP
+# ==================================================
 
 logging.basicConfig(
-    filename="app_logs.log",
+    filename="server_monitoring_system.log",
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
-                    )
-def safe_file_cleanup(file_path):
+)
+
+# ==================================================
+# EMAIL ALERT FUNCTION
+# ==================================================
+
+def send_alert_email(subject, body_text, recipient_email):
+
+    msg = MIMEMultipart()
+
+    msg["From"] = SENDER_EMAIL
+    msg["To"] = recipient_email
+    msg["Subject"] = subject
+
+    msg.attach(MIMEText(body_text, "plain"))
+
     try:
-        logging.info(f"Intiating reading the file{file_path}")
-        with open(file_path,'r') as file:
-            data=file.read()
-            print("file processed sucessfully")
-    except FileNotFoundError as fe :
-        logging.error(f"Target file is missing {file_path}")    
-        print("target file is not found ")
-    except PermissionError as pe:
-        logging.critical(f"Access denied for the file{file}")  
-        print("Insufficient Previliage")  
-    finally:
-        logging.info("file cleanup is completed")    
-safe_file_cleanup("dummy.json")        
+        print("\n[EMAIL] Connecting to Gmail SMTP Server...")
+
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+
+        server.login(SENDER_EMAIL, APP_PASSWORD)
+
+        server.sendmail(
+            SENDER_EMAIL,
+            recipient_email,
+            msg.as_string()
+        )
+
+        server.quit()
+
+        print(f"[EMAIL SUCCESS] Alert sent to {recipient_email}")
+
+    except Exception as e:
+        print(f"[EMAIL ERROR] {e}")
+
+# ==================================================
+# METRIC COLLECTION
+# ==================================================
+
+def collect_system_metrics():
+
+    cpu = psutil.cpu_percent(interval=1)
+
+    ram = psutil.virtual_memory().percent
+
+    disk = psutil.disk_usage('/').percent
+
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    return {
+        "timestamp": timestamp,
+        "cpu": cpu,
+        "ram": ram,
+        "disk": disk
+    }
+
+# ==================================================
+# STATUS ANALYSIS
+# ==================================================
+
+def analyze_system_status(metrics):
+
+    if (
+        metrics["cpu"] > CPU_THRESHOLD or
+        metrics["ram"] > RAM_THRESHOLD or
+        metrics["disk"] > DISK_THRESHOLD
+    ):
+        return "CRITICAL"
+
+    return "HEALTHY"
+
+# ==================================================
+# CSV REPORTING
+# ==================================================
+
+def append_to_csv_report(metrics, status):
+
+    fieldnames = [
+        "Timestamp",
+        "CPU_Percent",
+        "RAM_Percent",
+        "Disk_Percent",
+        "Status"
+    ]
+
+    try:
+
+        file_exists = False
+
+        try:
+            with open(CSV_REPORT_FILE, "r"):
+                file_exists = True
+        except FileNotFoundError:
+            pass
+
+        with open(CSV_REPORT_FILE, mode="a", newline="") as csv_file:
+
+            writer = csv.writer(csv_file)
+
+            if not file_exists:
+                writer.writerow(fieldnames)
+
+            writer.writerow([
+                metrics["timestamp"],
+                metrics["cpu"],
+                metrics["ram"],
+                metrics["disk"],
+                status
+            ])
+
+    except Exception as e:
+        logging.error(f"CSV Error: {e}")
+
+# ==================================================
+# ALERT HANDLING
+# ==================================================
+
+def trigger_alerts(metrics, status):
+
+    if status == "CRITICAL":
+
+        alert_message = f"""
+SERVER RESOURCE ALERT
+
+Timestamp : {metrics['timestamp']}
+CPU Usage : {metrics['cpu']}%
+RAM Usage : {metrics['ram']}%
+Disk Usage: {metrics['disk']}%
+
+Immediate investigation is recommended.
+"""
+
+        print("\n[ALERT TRIGGERED]")
+        print(alert_message)
+
+        logging.critical(alert_message)
+
+        send_alert_email(
+            subject="CRITICAL SERVER HEALTH ALERT",
+            body_text=alert_message,
+            recipient_email=RECIPIENT_EMAIL
+        )
+
+# ==================================================
+# MAIN MONITORING LOOP
+# ==================================================
+
+def run_capstone_monitoring_system(
+        iterations=3,
+        delay_seconds=5):
+
+    print("=" * 60)
+    print("      SERVER HEALTH MONITORING SYSTEM")
+    print("=" * 60)
+
+    logging.info("Monitoring System Started")
+
+    for cycle in range(1, iterations + 1):
+
+        print(f"\nMonitoring Cycle {cycle}/{iterations}")
+
+        metrics = collect_system_metrics()
+
+        status = analyze_system_status(metrics)
+
+        print(f"Timestamp : {metrics['timestamp']}")
+        print(f"CPU Usage : {metrics['cpu']}%")
+        print(f"RAM Usage : {metrics['ram']}%")
+        print(f"Disk Usage: {metrics['disk']}%")
+        print(f"Status    : {status}")
+
+        append_to_csv_report(metrics, status)
+
+        trigger_alerts(metrics, status)
+
+        logging.info(
+            f"Cycle {cycle} completed. Status={status}"
+        )
+
+        if cycle < iterations:
+            time.sleep(delay_seconds)
+
+    print("\n" + "=" * 60)
+    print("MONITORING COMPLETED")
+    print("CSV REPORT GENERATED")
+    print("LOG FILE GENERATED")
+    print("=" * 60)
+
+# ==================================================
+# EXECUTION
+# ==================================================
+
+run_capstone_monitoring_system(
+    iterations=3,
+    delay_seconds=2
+)

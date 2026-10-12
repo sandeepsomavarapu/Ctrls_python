@@ -1,0 +1,22 @@
+
+try:
+    fnum=int(input("Enter first number for division"))
+    snum=int(input("Enter second number for division"))
+    result=fnum/snum
+    print("division of two numbers : ",result)
+    li=[1,2,3]
+    print(li[2])
+    li.append(4)
+except ZeroDivisionError:
+    print("cannot devide by zero")  
+except ValueError :
+    print("Enter only number")    
+except IndexError:
+    print("Trying to access invalid index value")    
+except BaseException as be:
+    print("Some other exception",be.__class__)    
+else:
+    print("when there is no error")      
+finally:
+    print("cleanup code")    
+print("Remaining 10000 lines of code")
